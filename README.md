@@ -60,6 +60,7 @@ git commit -m "Update [submodule-name] submodule"
    - Kubernetes Engine API
    - Container Registry API
    - Cloud Resource Manager API
+   - Cloud SQL Admin API
 
 ### Configuration
 
@@ -91,6 +92,35 @@ nfs_server         = "your-nfs-server-ip"
 | nfs_server | NFS server IP address | (required) |
 | nfs_path_logs | NFS path for Airflow logs | /mnt/disks/airflow-disk/airflow/logs |
 | nfs_path_dags | NFS path for Airflow DAGs | /mnt/disks/airflow-disk/airflow/dags |
+| db_instance_name | Cloud SQL instance name | airflow-db |
+| db_region | Cloud SQL instance region | asia-southeast1 |
+| db_password | Cloud SQL postgres user password | (required) |
+
+### Cloud SQL Configuration
+
+The infrastructure includes a Cloud SQL PostgreSQL instance for Airflow's metadata database. The instance is configured with:
+- PostgreSQL 17
+- Custom machine type (db-custom-1-3840)
+- 10GB SSD storage
+- Automated backups and point-in-time recovery
+- Public IP access (configurable for private IP)
+
+#### Setting Database Password
+
+For security, the database password should be provided via environment variable:
+
+```bash
+# Option 1: Export the variable (password persists in shell session)
+export TF_VAR_db_password='your-secure-password'
+terraform plan -var-file="terraform.tfvars.airflow-gke-poc1"
+
+# Option 2: Set inline (more secure, password not stored in shell history)
+TF_VAR_db_password='your-secure-password' terraform plan -var-file="terraform.tfvars.airflow-gke-poc1"
+```
+
+Password requirements:
+- Minimum 8 characters
+- Mix of letters, numbers, and special characters
 
 ### Deployment Steps
 

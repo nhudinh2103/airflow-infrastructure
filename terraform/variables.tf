@@ -57,3 +57,21 @@ variable "nfs_path_dags" {
   type        = string
   default     = "/mnt/disks/airflow-disk/airflow/dags"
 }
+
+variable "db_instance_name" {
+  description = "The name of the Cloud SQL instance"
+  type        = string
+  default     = "airflow-db"
+}
+
+variable "db_password" {
+  description = "The password for the Cloud SQL postgres user"
+  type        = string
+  sensitive   = true
+}
+
+variable "db_region" {
+  description = "The region for the Cloud SQL instance"
+  type        = string
+  default     = "asia-southeast1"
+}
