@@ -14,9 +14,9 @@ This repository contains infrastructure-related configurations and helm charts a
 
 The following repositories are included as git submodules:
 
-- airflow: https://gitlab.com/personal2144607/airflow.git
-- github-runner: git@gitlab.com:personal2144607/github-runner.git
-- sealed-secrets: git@gitlab.com:personal2144607/sealed-secrets.git
+- airflow: https://gitlab.com/personal2144607/infras/airflow.git
+- github-runner: git@gitlab.com:personal2144607/infras/github-runner.git
+- sealed-secrets: git@gitlab.com:personal2144607/infras/sealed-secrets.git
 
 ## First Time Setup
 
