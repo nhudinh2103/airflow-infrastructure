@@ -1,0 +1,23 @@
+apiVersion: configmanagement.gke.io/v1
+kind: ConfigManagement
+metadata:
+  name: config-management
+spec:
+  # Enable Config Sync
+  configSync:
+    enabled: true
+    sourceFormat: unstructured
+    syncRepo: https://github.com/YOUR_ORG/YOUR_REPO  # Replace with your Git repository
+    syncBranch: main
+    secretType: gcpserviceaccount
+    gcpServiceAccountEmail: YOUR_SA@YOUR_PROJECT.iam.gserviceaccount.com  # Replace with your SA
+    preventDrift: true
+    
+    # Git repository structure
+    sourceFormat: hierarchy
+    policyDir: config-sync
+    
+  # Enable Policy Controller (optional)
+  policyController:
+    enabled: true
+    templateLibraryInstalled: true

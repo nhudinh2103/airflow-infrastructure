@@ -1,0 +1,19 @@
+# GKE Cluster Configuration
+project_id         = "your-project-id"
+cluster_name       = "your-cluster-name"
+zone               = "your-preferred-zone"  # e.g., asia-southeast1-c
+
+# Network Configuration
+network            = "projects/your-project-id/global/networks/default"
+subnetwork         = "projects/your-project-id/regions/your-region/subnetworks/default"
+ip_range_pods      = "your-pods-range"      # e.g., gke-pods
+ip_range_services  = "your-services-range"  # e.g., gke-services
+
+# Security Configuration
+service_account    = "your-service-account@your-project-id.iam.gserviceaccount.com"
+authorized_ipv4_cidr = "your-ip/32"         # e.g., 192.168.1.100/32
+
+# NFS Configuration for Airflow
+nfs_server         = "your-nfs-server-ip"   # e.g., 10.0.0.1
+nfs_path_logs      = "/mnt/disks/airflow-disk/airflow/logs"
+nfs_path_dags      = "/mnt/disks/airflow-disk/airflow/dags"

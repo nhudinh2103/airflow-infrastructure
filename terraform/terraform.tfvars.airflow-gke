@@ -1,0 +1,18 @@
+# GKE Cluster Configuration
+project_id         = "personal-project-447516"
+cluster_name       = "dinhnnpoc-airflow-test-cluster"
+zone               = "asia-southeast1-c"
+
+# Network Configuration
+network            = "projects/personal-project-447516/global/networks/default"
+subnetwork         = "projects/personal-project-447516/regions/asia-southeast1/subnetworks/default"
+ip_range_pods      = "gke-pods"
+ip_range_services  = "gke-services"
+
+# Security Configuration
+service_account    = "rancher-provision-gke@personal-project-447516.iam.gserviceaccount.com"
+authorized_ipv4_cidr = "42.119.80.24/32"
+
+# NFS Configuration for Airflow
+nfs_path_logs      = "/mnt/disks/airflow-disk/airflow/logs"
+nfs_path_dags      = "/mnt/disks/airflow-disk/airflow/dags"

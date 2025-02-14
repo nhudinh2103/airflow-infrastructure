@@ -1,0 +1,9 @@
+[submodule "airflow"]
+	path = airflow
+	url = https://gitlab.com/personal2144607/airflow.git
+[submodule "github-runner"]
+	path = github-runner
+	url = git@gitlab.com:personal2144607/github-runner.git
+[submodule "sealed-secrets"]
+	path = sealed-secrets
+	url = git@gitlab.com:personal2144607/sealed-secrets.git
