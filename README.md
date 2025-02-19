@@ -170,17 +170,7 @@ The above command enables:
 
 ### Configuration
 
-1. Create a terraform.tfvars file in the terraform directory:
-
-```hcl
-project_id         = "your-project-id"
-network            = "your-vpc-network"
-subnetwork         = "your-subnet"
-ip_range_pods      = "your-pods-range"
-ip_range_services  = "your-services-range"
-service_account    = "your-service-account@your-project.iam.gserviceaccount.com"
-nfs_server         = "your-nfs-server-ip"
-```
+See terraform.tfvars.example for a template configuration file. Copy this file to terraform.tfvars and update the values according to your environment.
 
 ### Required Variables
 
@@ -196,10 +186,10 @@ nfs_server         = "your-nfs-server-ip"
 | ip_range_pods | Secondary IP range name for pods | Yes | gke-pods |
 | ip_range_services | Secondary IP range name for services | Yes | gke-services |
 | service_account | Service account email for GKE nodes | Yes | service-account@project.iam.gserviceaccount.com |
-| authorized_ipv4_cidr | CIDR range for authorized access | Yes | 192.168.1.100/32 |
+| authorized_ipv4_cidr | CIDR range for authorized access to GKE master | Yes | 192.168.1.100/32 |
 | sealed_secret_public_cert | Path to sealed secrets public certificate | Yes | public_cert.pem |
-| nfs_path_logs | NFS mount path for Airflow logs | Yes | /path/to/airflow/logs |
-| nfs_path_dags | NFS mount path for Airflow DAGs | Yes | /path/to/airflow/dags |
+| nfs_path_logs | NFS mount path for Airflow logs | Yes | /mnt/disks/airflow-disk/airflow/logs |
+| nfs_path_dags | NFS mount path for Airflow DAGs | Yes | /mnt/disks/airflow-disk/airflow/dags |
 | db_instance_name | Name for the Cloud SQL instance | Yes | airflow-db |
 | db_region | Region for the Cloud SQL instance | Yes | asia-southeast1 |
 | db_password | Cloud SQL postgres user password | Yes | Set via TF_VAR_db_password |
