@@ -1,19 +1,27 @@
 # GKE Cluster Configuration
-project_id         = "your-project-id"
-cluster_name       = "your-cluster-name"
-zone               = "your-preferred-zone"  # e.g., asia-southeast1-c
+project_id         = "your-project-id"              # The GCP project ID where resources will be created
+airflow_repository = "your-container-registry-path" # Container registry path for Airflow images (e.g., gcr.io/project/airflow)
+cluster_name       = "your-cluster-name"           # Name of the GKE cluster
+zone               = "your-zone"                   # GCP zone for resources (e.g., asia-southeast1-c)
+
+default_storage_class = "your-storage-class"       # Kubernetes storage class for persistent volumes
 
 # Network Configuration
-network            = "projects/your-project-id/global/networks/default"
-subnetwork         = "projects/your-project-id/regions/your-region/subnetworks/default"
-ip_range_pods      = "your-pods-range"      # e.g., gke-pods
-ip_range_services  = "your-services-range"  # e.g., gke-services
+network            = "your-network"                # VPC network name
+subnetwork         = "your-subnetwork"            # Subnet name within the VPC
+ip_range_pods      = "your-pods-range"            # Secondary IP range name for pods
+ip_range_services  = "your-services-range"        # Secondary IP range name for services
 
 # Security Configuration
-service_account    = "your-service-account@your-project-id.iam.gserviceaccount.com"
-authorized_ipv4_cidr = "your-ip/32"         # e.g., 192.168.1.100/32
+service_account    = "your-service-account"        # Service account email for GKE nodes
+authorized_ipv4_cidr = "your-ip/32"               # CIDR range for authorized access to GKE master
+sealed_secret_public_cert = "path-to-cert"        # Path to the sealed secrets public certificate
 
 # NFS Configuration for Airflow
-nfs_server         = "your-nfs-server-ip"   # e.g., 10.0.0.1
-nfs_path_logs      = "/mnt/disks/airflow-disk/airflow/logs"
-nfs_path_dags      = "/mnt/disks/airflow-disk/airflow/dags"
+nfs_path_logs      = "your-nfs-logs-path"         # NFS mount path for Airflow logs
+nfs_path_dags      = "your-nfs-dags-path"         # NFS mount path for Airflow DAGs
+
+# Database Configuration
+db_instance_name   = "your-db-instance"           # Name for the Cloud SQL instance
+db_region         = "your-db-region"              # Region for the Cloud SQL instance
+# db_password     = "your-db-password"            # Set via environment variable TF_VAR_db_password

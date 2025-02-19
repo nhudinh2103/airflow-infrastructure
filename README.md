@@ -56,11 +56,117 @@ git commit -m "Update [submodule-name] submodule"
 
 1. Install Terraform (version >= 1.0.0)
 2. Configure Google Cloud SDK and authenticate
-3. Enable required Google Cloud APIs:
-   - Kubernetes Engine API
-   - Container Registry API
-   - Cloud Resource Manager API
-   - Cloud SQL Admin API
+3. Set up service account with required permissions:
+
+```bash
+# Set variables
+PROJECT_ID="your-project-id"
+SA_NAME="rancher-provision-gke"
+SA_DISPLAY_NAME="Service Account for GKE and Cloud SQL provisioning"
+ROOT_EMAIL="root-email@example.com"  # Root account email
+
+# 1. Switch to root account first
+echo "Switching to root account..."
+gcloud config set account $ROOT_EMAIL
+
+# 2. Create service account
+gcloud iam service-accounts create $SA_NAME \
+  --project=$PROJECT_ID \
+  --display-name="$SA_DISPLAY_NAME"
+
+# 3. Get the full service account email
+SA_EMAIL="$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com"
+
+# 4. Grant necessary roles (as root)
+echo "Granting roles to service account..."
+# Core functionality roles
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/container.admin"        # For GKE management
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/container.clusterViewer" # For listing cluster versions
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/cloudsql.admin"        # For Cloud SQL management
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/compute.admin"         # For compute resources (NFS)
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/iam.serviceAccountUser" # For using service accounts
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/storage.admin"         # For GCR access
+
+# Add IAM roles for policy management
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/iam.securityReviewer"  # For viewing IAM policies
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:$SA_EMAIL" \
+  --role="roles/resourcemanager.projectIamAdmin"  # For modifying IAM policies
+
+# 5. Create and download service account key
+echo "Creating service account key..."
+gcloud iam service-accounts keys create key.json \
+  --iam-account=$SA_EMAIL
+
+# 6. Test service account permissions
+gcloud auth activate-service-account $SA_EMAIL \
+  --key-file=key.json \
+  --project=$PROJECT_ID
+
+# Test permissions
+echo "Testing permissions..."
+gcloud projects get-iam-policy $PROJECT_ID
+gcloud container clusters list --project=$PROJECT_ID
+gcloud sql instances list --project=$PROJECT_ID
+gcloud compute instances list --project=$PROJECT_ID
+
+# 7. Switch back to root account
+echo "Switching back to root account..."
+gcloud config set account $ROOT_EMAIL
+```
+
+These roles provide the following permissions:
+- container.admin: Create and manage GKE clusters
+- container.clusterViewer: View and list cluster versions
+- cloudsql.admin: Create and manage Cloud SQL instances
+- compute.admin: Manage compute resources (needed for NFS)
+- iam.serviceAccountUser: Use service accounts
+- storage.admin: Access to Container Registry
+- iam.securityReviewer: View IAM policies (needed for Terraform)
+- resourcemanager.projectIamAdmin: Modify IAM policies
+
+Important notes:
+1. Replace placeholders with your actual values
+2. Root account should have Organization/Project Admin privileges
+3. Keep key.json secure and never commit it to version control
+4. For production, consider using Workload Identity instead of service account keys
+
+4. Enable required Google Cloud APIs:
+
+```bash
+# Enable required APIs
+gcloud services enable \
+    container.googleapis.com \
+    containerregistry.googleapis.com \
+    cloudresourcemanager.googleapis.com \
+    sqladmin.googleapis.com
+```
+
+The above command enables:
+   - Kubernetes Engine API (container.googleapis.com)
+   - Container Registry API (containerregistry.googleapis.com)
+   - Cloud Resource Manager API (cloudresourcemanager.googleapis.com)
+   - Cloud SQL Admin API (sqladmin.googleapis.com)
 
 ### Configuration
 
@@ -78,23 +184,25 @@ nfs_server         = "your-nfs-server-ip"
 
 ### Required Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| project_id | GCP Project ID | (required) |
-| cluster_name | GKE cluster name | dinhnnpoc-airflow-test-cluster |
-| zone | GCP zone | asia-southeast1-c |
-| network | VPC network name | (required) |
-| subnetwork | Subnet name | (required) |
-| ip_range_pods | Secondary IP range for pods | (required) |
-| ip_range_services | Secondary IP range for services | (required) |
-| service_account | GCP service account | (required) |
-| authorized_ipv4_cidr | Authorized network CIDR | 42.119.80.24/32 |
-| nfs_server | NFS server IP address | (required) |
-| nfs_path_logs | NFS path for Airflow logs | /mnt/disks/airflow-disk/airflow/logs |
-| nfs_path_dags | NFS path for Airflow DAGs | /mnt/disks/airflow-disk/airflow/dags |
-| db_instance_name | Cloud SQL instance name | airflow-db |
-| db_region | Cloud SQL instance region | asia-southeast1 |
-| db_password | Cloud SQL postgres user password | (required) |
+| Variable | Description | Required | Example |
+|----------|-------------|----------|---------|
+| project_id | GCP Project ID where resources will be created | Yes | my-project-123 |
+| airflow_repository | Container registry path for Airflow images | Yes | gcr.io/my-project/airflow |
+| cluster_name | Name of the GKE cluster | Yes | my-airflow-cluster |
+| zone | GCP zone for resources | Yes | asia-southeast1-c |
+| default_storage_class | Kubernetes storage class for persistent volumes | Yes | standard-rwo |
+| network | VPC network name | Yes | default |
+| subnetwork | Subnet name within the VPC | Yes | default |
+| ip_range_pods | Secondary IP range name for pods | Yes | gke-pods |
+| ip_range_services | Secondary IP range name for services | Yes | gke-services |
+| service_account | Service account email for GKE nodes | Yes | service-account@project.iam.gserviceaccount.com |
+| authorized_ipv4_cidr | CIDR range for authorized access | Yes | 192.168.1.100/32 |
+| sealed_secret_public_cert | Path to sealed secrets public certificate | Yes | public_cert.pem |
+| nfs_path_logs | NFS mount path for Airflow logs | Yes | /path/to/airflow/logs |
+| nfs_path_dags | NFS mount path for Airflow DAGs | Yes | /path/to/airflow/dags |
+| db_instance_name | Name for the Cloud SQL instance | Yes | airflow-db |
+| db_region | Region for the Cloud SQL instance | Yes | asia-southeast1 |
+| db_password | Cloud SQL postgres user password | Yes | Set via TF_VAR_db_password |
 
 ### Cloud SQL Configuration
 
@@ -140,6 +248,87 @@ terraform plan
 terraform apply
 ```
 
+### Ingress Configuration
+
+The infrastructure uses a GCP HTTP(S) Load Balancer configured through a Kubernetes Ingress resource. The GKE cluster is pre-configured with HTTP load balancing enabled through the terraform configuration.
+
+Prerequisites:
+```bash
+# Enable required APIs for load balancing
+gcloud services enable \
+    compute.googleapis.com \
+    certificatemanager.googleapis.com
+```
+
+The setup requires manual creation of:
+
+1. Static IP Address:
+   ```bash
+   # Reserve a global static IP
+   gcloud compute addresses create poc-click-ip --global
+   
+   # Get the IP address
+   gcloud compute addresses describe poc-click-ip --global --format='get(address)'
+   ```
+
+2. SSL Certificate:
+   ```bash
+   # Create a Google-managed SSL certificate
+   gcloud compute ssl-certificates create dinhnn-poc-cert \
+     --domains=your-domain.example.com \
+     --global
+   
+   # Check certificate provisioning status
+   gcloud compute ssl-certificates describe dinhnn-poc-cert --global
+   ```
+   Note: Certificate provisioning may take 30-60 minutes.
+
+3. Ingress Configuration (airflow/k8s/ingress.yaml):
+   ```yaml
+   apiVersion: networking.k8s.io/v1
+   kind: Ingress
+   metadata:
+     name: "airflow-ingress"
+     namespace: "airflow"
+     annotations:
+       kubernetes.io/ingress.global-static-ip-name: "poc-click-ip"
+       ingress.gcp.kubernetes.io/pre-shared-cert: "dinhnn-poc-cert"
+       kubernetes.io/ingress.class: "gce"
+   spec:
+     ingressClassName: "gce"
+     rules:
+     - http:
+         paths:
+         - backend:
+             service:
+               name: airflow-webserver
+               port:
+                 number: 8080
+           path: /
+           pathType: Prefix
+   ```
+
+4. Apply the ingress:
+   ```bash
+   kubectl apply -f airflow/k8s/ingress.yaml
+   ```
+
+5. Verify the setup:
+   ```bash
+   # Check ingress status
+   kubectl get ingress -n airflow
+   
+   # Check backend services and health
+   kubectl describe ingress airflow-ingress -n airflow
+   
+   # Check load balancer and backend services in GCP console
+   # Navigate to: Network Services > Load Balancing
+   ```
+
+Note: The ingress configuration is automatically applied by Terraform using the kubernetes_manifest resource after the Airflow helm release is complete. If you need to make changes to the ingress configuration, you can either:
+1. Modify airflow/k8s/ingress.yaml and apply it manually using kubectl
+2. Update the configuration and run terraform apply to reapply the changes
+
 ### Common Operations
 
 1. Update cluster configuration:
@@ -154,5 +343,3 @@ terraform apply   # Apply changes
 
 3. Destroy infrastructure:
 ```bash
-terraform destroy
-```

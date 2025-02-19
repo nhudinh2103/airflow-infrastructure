@@ -17,7 +17,7 @@ resource "google_compute_instance" "nfs" {
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-12-bookworm"
+      image = "projects/debian-cloud/global/images/debian-12-bookworm-v20250212"
       size  = 10
       type  = "pd-ssd"
     }
@@ -47,7 +47,7 @@ resource "google_compute_instance" "nfs" {
   }
 
   service_account {
-    email = "81624313392-compute@developer.gserviceaccount.com"
+    email = var.service_account
     scopes = [
       "https://www.googleapis.com/auth/devstorage.read_only",
       "https://www.googleapis.com/auth/logging.write",
@@ -119,6 +119,9 @@ resource "google_compute_instance" "nfs" {
 
     # Create and set permissions for Airflow and GitHub Runners directories
     mkdir -p /mnt/disks/airflow-disk/airflow
+    mkdir -p /mnt/disks/airflow-disk/airflow/dags
+    mkdir -p /mnt/disks/airflow-disk/airflow/logs
+    
     chmod -R 775 /mnt/disks/airflow-disk/airflow
     chown -R 50000:50000 /mnt/disks/airflow-disk/airflow
 

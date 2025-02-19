@@ -1,0 +1,28 @@
+# Certificates and keys
+*.pem
+*.key
+*.crt
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+terraform.tfvars.*
+!terraform.tfvars.example
+
+# Service account keys
+*.json
+!package.json
+!Chart.json
+!values.schema.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

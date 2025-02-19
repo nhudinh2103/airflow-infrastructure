@@ -75,3 +75,20 @@ variable "db_region" {
   type        = string
   default     = "asia-southeast1"
 }
+
+variable "airflow_repository" {
+  description = "Repository for Airflow images"
+  type        = string
+  default     = "asia.gcr.io/personal-project-447516/airflow"
+}
+
+variable "default_storage_class" {
+  description = "Default storage class for kubernetes cluster"
+  type        = string
+  default     = "standard-rwo"
+}
+
+variable "sealed_secret_public_cert" {
+  description = "Path to the public certificate file for sealed secrets"
+  type        = string
+}
