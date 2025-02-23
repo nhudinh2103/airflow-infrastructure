@@ -7,3 +7,6 @@
 [submodule "sealed-secrets"]
 	path = sealed-secrets
 	url = git@gitlab.com:personal2144607/infras/sealed-secrets.git
+[submodule "csi-driver-nfs"]
+	path = csi-driver-nfs
+	url = https://gitlab.com/personal2144607/infras/csi-driver-nfs
