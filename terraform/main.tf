@@ -93,6 +93,7 @@ module "gke" {
       auto_upgrade         = true
       spot                = true
       initial_node_count  = 2
+      node_count          = 2
       service_account     = var.service_account
     }
   ]
@@ -399,7 +400,7 @@ resource "kubernetes_manifest" "airflow_metadata_secret" {
     }
     spec = {
       encryptedData = {
-        connection = var.sealed_secret_public_cert
+        connection = var.sealed_secret_psycopg2_encrypted_connection
       }
     }
   }
