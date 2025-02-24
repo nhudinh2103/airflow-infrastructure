@@ -15,7 +15,6 @@ ip_range_services  = "your-services-range"        # Secondary IP range name for 
 # Security Configuration
 service_account    = "your-service-account"        # Service account email for GKE nodes
 authorized_ipv4_cidr = "your-ip/32"               # CIDR range for authorized access to GKE master
-sealed_secret_public_cert = "path-to-cert"        # Path to the sealed secrets public certificate
 
 # NFS Configuration for Airflow
 nfs_path_logs      = "your-nfs-logs-path"         # NFS mount path for Airflow logs

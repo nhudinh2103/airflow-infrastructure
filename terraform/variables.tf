@@ -88,7 +88,8 @@ variable "default_storage_class" {
   default     = "standard-rwo"
 }
 
-variable "sealed_secret_public_cert" {
-  description = "Path to the public certificate file for sealed secrets"
+variable "sealed_secret_psycopg2_encrypted_connection" {
+  description = "Url for connect to metadata db using pyscopg2"
   type        = string
+  default     = "AgAYs7paECt0ftH/8RRqQBqnzx+jT4oXj0cddqvzAqjF89Hf4w0PxNsiqFysC+Ra88ZPrq5oSmoRCgAHgBZhATvK27Yymx/2w72WPrYbssx21H/+5GBi5RXe6e4YbY08svGgfDIM8zdvDxMGIFY0wH4udkZEU9iCYc0e3nD9U/R+f458zmw0TN4H9zCEqZpAmlY18renajRrZOi4tg9k1dAecS8/cltgcp5vde8xxronsFB3wDRes+vzCcRzUUlcdUioOeDq3WKflUotdNx9eR6IYJremddsFty7rIxmFWxeB+u6fYVj/OajNlk6z7lVDydg12BzX2aApj9Wx2joDPuHotpzVzFP5HfrfQNf1S7uIKZ5zDlAV4ky8Z222CSOOf7LRZGMiMHYZVuAK2wxR+0hnI9FgtG3p0SocVuxbORgL95puEgJdbXAE1uUrCNOLYHFPjZvKGcj50i8WsovVf31hk612yaJ+blJjDpEp3uZtj/SIK49HhISS5v/vTuL6NJxslGQXEmucnuG+onRBIm1dDuZzlmddXZlDSopSQ4zwlqgBXaXOhWEejKYA2zAZlPpsCkl8fEInmn+v9g1rOBXO0MsEzRVqfdBhD5kI2m0uapGZSxuAq5bA95rB0KSACKhgBw0/4NqFUxLZakMq5gwESRGTI7E2GX7G2zd1oVueLPFvQUUq0uHFWzd8JdrB+hJrE8OAKxvOvnIcK1dzrba/fJvbEFnWcxYq/+wA8pP6lQlbBqMdrFfE/d3wBqU4RDos5b/PzXhUZAZa5gEq0h5Vd6EO6kZExQotyj+BTEv"
 }

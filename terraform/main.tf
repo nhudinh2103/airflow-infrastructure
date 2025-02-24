@@ -77,7 +77,7 @@ module "gke" {
 
   # Node pool configuration
   remove_default_node_pool  = true
-  initial_node_count       = 1
+  initial_node_count       = 2
 
   node_pools = [
     {
@@ -92,7 +92,7 @@ module "gke" {
       auto_repair          = true
       auto_upgrade         = true
       spot                = true
-      initial_node_count  = 1
+      initial_node_count  = 2
       service_account     = var.service_account
     }
   ]
@@ -144,6 +144,64 @@ resource "helm_release" "sealed_secrets" {
   set {
     name  = "fullnameOverride"
     value = "sealed-secrets-controller"
+  }
+}
+
+# Install CSI Driver NFS
+resource "helm_release" "csi_driver_nfs" {
+  name       = "csi-driver-nfs"
+  chart      = "../csi-driver-nfs"
+  namespace  = "kube-system"
+  depends_on = [helm_release.sealed_secrets]
+
+  set {
+    name  = "controller.replicas"
+    value = "1"
+  }
+
+  set {
+    name  = "kubeletDir"
+    value = "/var/lib/kubelet"
+  }
+}
+
+# Delete existing StorageClass if exists
+resource "null_resource" "delete_storageclass" {
+  triggers = {
+    nfs_ip = google_compute_instance.nfs.network_interface[0].network_ip
+  }
+
+  provisioner "local-exec" {
+    command = "kubectl delete storageclass nfs-csi-github-runner --ignore-not-found=true"
+  }
+
+  depends_on = [helm_release.csi_driver_nfs]
+}
+
+# Apply StorageClass for GitHub Runner
+resource "kubernetes_manifest" "github_runner_storageclass" {
+  depends_on = [null_resource.delete_storageclass]
+  manifest = {
+    apiVersion = "storage.k8s.io/v1"
+    kind       = "StorageClass"
+    metadata = {
+      name = "nfs-csi-github-runner"
+    }
+    provisioner = "nfs.csi.k8s.io"
+    parameters = {
+      server = "${google_compute_instance.nfs.network_interface[0].network_ip}"
+      share  = "/mnt/disks/airflow-disk/github-runners"
+    }
+    reclaimPolicy        = "Delete"
+    volumeBindingMode    = "Immediate"
+    allowVolumeExpansion = true
+    mountOptions = [
+      "nfsvers=4.1",
+      "rsize=131072",
+      "wsize=131072",
+      "noatime",
+      "nolock"
+    ]
   }
 }
 
@@ -284,8 +342,7 @@ resource "helm_release" "airflow" {
     kubernetes_persistent_volume_claim.airflow_logs,
     kubernetes_persistent_volume_claim.airflow_dags,
     kubernetes_namespace.airflow,
-    google_sql_database_instance.airflow,
-    sealedsecret_raw_secrets.airflow-metadata-secret
+    google_sql_database_instance.airflow
   ]
 
   values = [
@@ -314,8 +371,37 @@ resource "helm_release" "airflow" {
 
 }
 
-# Apply Airflow Ingress
+# Check if Airflow Ingress exists
+data "kubernetes_resource" "airflow_ingress" {
+  api_version = "networking.k8s.io/v1"
+  kind        = "Ingress"
+  metadata {
+    name      = "airflow-ingress"
+    namespace = kubernetes_namespace.airflow.metadata[0].name
+  }
+  depends_on = [helm_release.airflow]
+}
+
+# Apply Airflow Ingress if not exists
 resource "kubernetes_manifest" "airflow_ingress" {
+  count = data.kubernetes_resource.airflow_ingress == null ? 1 : 0
   manifest = yamldecode(file("../airflow/k8s/ingress.yaml"))
   depends_on = [helm_release.airflow]
+}
+
+resource "kubernetes_manifest" "airflow_metadata_secret" {
+  manifest = {
+    apiVersion = "bitnami.com/v1alpha1"
+    kind       = "SealedSecret"
+    metadata = {
+      name      = "airflow-metadata-secret"
+      namespace = kubernetes_namespace.airflow.metadata[0].name
+    }
+    spec = {
+      encryptedData = {
+        connection = var.sealed_secret_public_cert
+      }
+    }
+  }
+  depends_on = [kubernetes_namespace.airflow]
 }
