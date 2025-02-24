@@ -5,10 +5,10 @@ This repository contains infrastructure-related configurations and helm charts a
 ## Structure
 
 - `terraform/` - Contains Terraform configurations for infrastructure provisioning
-- `config-sync/` - Contains Config Sync configurations for Kubernetes
 - `airflow/` - Airflow helm charts (submodule)
 - `github-runner/` - GitHub Runner helm charts (submodule)
 - `sealed-secrets/` - Sealed Secrets helm charts (submodule)
+- `csi-driver-nfs/` - NFS CSI Driver helm charts for dynamic NFS provisioning (submodule)
 
 ## Git Submodules
 
@@ -17,6 +17,7 @@ The following repositories are included as git submodules:
 - airflow: https://gitlab.com/personal2144607/infras/airflow.git
 - github-runner: git@gitlab.com:personal2144607/infras/github-runner.git
 - sealed-secrets: git@gitlab.com:personal2144607/infras/sealed-secrets.git
+- csi-driver-nfs: git@gitlab.com:personal2144607/infras/csi-driver-nfs.git
 
 ## First Time Setup
 
@@ -333,3 +334,31 @@ terraform apply   # Apply changes
 
 3. Destroy infrastructure:
 ```bash
+# First, delete all workloads and PVCs in the airflow namespace
+kubectl delete namespace airflow
+
+# Delete GitHub Runner workloads
+kubectl delete namespace arc-systems
+
+# Delete Sealed Secrets
+kubectl delete namespace sealed-secrets
+
+# Verify all PVs are removed
+kubectl get pv
+
+# Then destroy the infrastructure
+cd terraform
+terraform destroy
+
+# After terraform destroy completes, verify:
+# 1. Check GCP Console that all resources are removed
+# 2. Check for any orphaned resources:
+#    - Persistent Disks
+#    - Load Balancers
+#    - Cloud SQL instances
+#    - Static IPs
+#    - Service accounts
+#    - IAM bindings
+```
+
+Note: Always ensure you have backed up any important data before destroying the infrastructure.
