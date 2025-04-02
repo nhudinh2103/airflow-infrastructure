@@ -160,7 +160,8 @@ gcloud services enable \
     container.googleapis.com \
     containerregistry.googleapis.com \
     cloudresourcemanager.googleapis.com \
-    sqladmin.googleapis.com
+    sqladmin.googleapis.com \
+    gkehub.googleapis.com
 ```
 
 The above command enables:
@@ -248,8 +249,7 @@ Prerequisites:
 # Enable required APIs for load balancing
 gcloud services enable \
     compute.googleapis.com \
-    certificatemanager.googleapis.com \
-    gkehub.googleapis.com
+    certificatemanager.googleapis.com
 ```
 
 The setup requires manual creation of:
