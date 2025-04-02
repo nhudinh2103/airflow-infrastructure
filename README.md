@@ -248,7 +248,8 @@ Prerequisites:
 # Enable required APIs for load balancing
 gcloud services enable \
     compute.googleapis.com \
-    certificatemanager.googleapis.com
+    certificatemanager.googleapis.com \
+    gkehub.googleapis.com
 ```
 
 The setup requires manual creation of:
